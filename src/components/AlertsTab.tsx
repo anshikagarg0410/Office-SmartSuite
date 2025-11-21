@@ -4,6 +4,7 @@ import { Switch } from './ui/switch';
 import { Badge } from './ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Shield, Bell, AlertTriangle, Activity } from 'lucide-react';
+import { api } from '../api';
 
 interface AlertRecord {
   id: string;
@@ -12,56 +13,56 @@ interface AlertRecord {
   status: string;
 }
 
-export function AlertsTab() {
-  const [alertMode, setAlertMode] = useState(false);
-  const [motionDetected, setMotionDetected] = useState(false);
-  const [alertHistory, setAlertHistory] = useState<AlertRecord[]>([
-    { id: '1', timestamp: '2025-11-18 14:32:15', type: 'Motion Detected', status: 'Resolved' },
-    { id: '2', timestamp: '2025-11-18 13:45:22', type: 'Unauthorized Movement', status: 'Resolved' },
-    { id: '3', timestamp: '2025-11-18 12:18:09', type: 'Motion Detected', status: 'Resolved' },
-    { id: '4', timestamp: '2025-11-18 11:55:33', type: 'Motion Detected', status: 'Resolved' },
-    { id: '5', timestamp: '2025-11-18 10:20:47', type: 'Unauthorized Movement', status: 'Resolved' },
-  ]);
+interface AlertsData {
+  alertMode: boolean;
+  motionDetected: boolean;
+  alertHistory: AlertRecord[];
+}
 
-  // Simulate PIR sensor
+export function AlertsTab() {
+  const [data, setData] = useState<AlertsData>({
+    alertMode: false,
+    motionDetected: false,
+    alertHistory: [],
+  });
+  const [loading, setLoading] = useState(true);
+
+  const fetchData = async () => {
+    try {
+      const response = await api.get('/data/alerts');
+      setData(response.data);
+    } catch (error) {
+      console.error('Failed to fetch alerts data', error);
+    } finally {
+        setLoading(false);
+    }
+  };
+
+  // Initial fetch and Polling for real-time updates
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (alertMode && Math.random() > 0.9) {
-        setMotionDetected(true);
-        
-        // Add to history
-        const newAlert: AlertRecord = {
-          id: Date.now().toString(),
-          timestamp: new Date().toLocaleString('en-US', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: false
-          }).replace(',', ''),
-          type: 'Motion Detected',
-          status: 'Active'
-        };
-        
-        setAlertHistory(prev => [newAlert, ...prev]);
-        
-        setTimeout(() => {
-          setMotionDetected(false);
-          // Update status to resolved
-          setAlertHistory(prev => {
-            const updated = [...prev];
-            if (updated[0]?.id === newAlert.id) {
-              updated[0] = { ...updated[0], status: 'Resolved' };
-            }
-            return updated;
-          });
-        }, 3000);
-      }
-    }, 4000);
-    return () => clearInterval(interval);
-  }, [alertMode]);
+    fetchData();
+    
+    // Polling interval (every 4 seconds, mimicking old simulation interval)
+    const interval = setInterval(fetchData, 4000); 
+    return () => clearInterval(interval); // Cleanup on unmount
+  }, []);
+
+  const handleAlertModeToggle = async (checked: boolean) => {
+    setData(prev => ({ ...prev, alertMode: checked }));
+    try {
+      await api.post('/data/alerts/toggle-mode', { alertMode: checked });
+    } catch (error) {
+      console.error('Failed to toggle alert mode', error);
+      // Revert local state if API call fails
+      setData(prev => ({ ...prev, alertMode: !checked })); 
+    }
+  };
+
+  if (loading) {
+    return <div>Loading security system status...</div>;
+  }
+
+  const { alertMode, motionDetected, alertHistory } = data;
 
   return (
     <div className="space-y-6 max-w-6xl">
@@ -130,7 +131,7 @@ export function AlertsTab() {
                   <Shield className="w-4 h-4 text-slate-600" />
                   <span className="text-sm">Alert Mode</span>
                 </div>
-                <Switch checked={alertMode} onCheckedChange={setAlertMode} />
+                <Switch checked={alertMode} onCheckedChange={handleAlertModeToggle} />
               </div>
               
               

@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Switch } from './ui/switch';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Fingerprint, Flame, DoorOpen, CheckCircle2, Users, Clock } from 'lucide-react';
+import { api } from '../api';
 
 interface AttendanceRecord {
   id: string;
@@ -13,45 +14,88 @@ interface AttendanceRecord {
   time: string;
 }
 
+interface AccessSafetyData {
+  gateOpen: boolean;
+  fireSystemOn: boolean;
+  fireDetected: boolean;
+  attendance: AttendanceRecord[];
+}
+
 export function AccessSafetyTab() {
-  // RFID Access Control
-  const [gateOpen, setGateOpen] = useState(false);
+  const [data, setData] = useState<AccessSafetyData>({
+    gateOpen: false,
+    fireSystemOn: true,
+    fireDetected: false,
+    attendance: [],
+  });
   const [scanning, setScanning] = useState(false);
-  const [attendance, setAttendance] = useState<AttendanceRecord[]>([
-    { id: '1', employeeId: 'A1234', name: 'John Smith', time: '08:30 AM' },
-    { id: '2', employeeId: 'A2345', name: 'Sarah Johnson', time: '08:45 AM' },
-    { id: '3', employeeId: 'A3456', name: 'Mike Davis', time: '09:30 AM' },
-  ]);
+  const [loading, setLoading] = useState(true);
 
-  // Fire Alarm System
-  const [fireSystemOn, setFireSystemOn] = useState(true);
-  const [fireDetected, setFireDetected] = useState(false);
+  const fetchData = async () => {
+    try {
+      const response = await api.get('/data/access-safety');
+      setData(response.data);
+    } catch (error) {
+      console.error('Failed to fetch access safety data', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const handleRfidScan = () => {
+  // Initial fetch and Polling for device status changes (gate, fireDetected)
+  useEffect(() => {
+    fetchData();
+    const interval = setInterval(fetchData, 2000); 
+    return () => clearInterval(interval); 
+  }, []);
+
+
+  const handleRfidScan = async () => {
     setScanning(true);
-    setTimeout(() => {
-      setGateOpen(true);
-      const names = ['Emma Wilson', 'David Brown', 'Lisa Chen'];
-      const randomName = names[Math.floor(Math.random() * names.length)];
-      const newId = `A${Math.floor(1000 + Math.random() * 9000)}`;
-      const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    try {
+      // POST request simulates the sensor reading and gate action
+      const response = await api.post('/data/access-safety/rfid-scan');
       
-      setAttendance(prev => [{
-        id: Date.now().toString(),
-        employeeId: newId,
-        name: randomName,
-        time
-      }, ...prev]);
-      
+      // Update the local state with the newly returned data to show the gate open state and new attendance
+      setData(prev => ({
+        ...prev,
+        gateOpen: response.data.gateOpen,
+        attendance: [response.data.newRecord, ...prev.attendance],
+      }));
+
+    } catch (error) {
+      console.error('RFID scan failed', error);
+    } finally {
       setScanning(false);
-      setTimeout(() => setGateOpen(false), 3000);
-    }, 1500);
+    }
   };
 
-  const handleFireTest = () => {
-    setFireDetected(true);
-    setTimeout(() => setFireDetected(false), 5000);
+  const handleFireSystemToggle = async (checked: boolean) => {
+    setData(prev => ({ ...prev, fireSystemOn: checked }));
+    try {
+      await api.post('/data/access-safety/fire-system-toggle', { fireSystemOn: checked });
+    } catch (error) {
+      console.error('Failed to toggle fire system', error);
+      // Revert local state if API call fails
+      setData(prev => ({ ...prev, fireSystemOn: !checked })); 
+    }
   };
+
+  const handleFireTest = async () => {
+    try {
+      await api.post('/data/access-safety/fire-test');
+      // Set local state for immediate feedback, relying on polling to confirm server state
+      setData(prev => ({ ...prev, fireDetected: true })); 
+    } catch (error) {
+      console.error('Fire test failed', error);
+    }
+  };
+
+  if (loading) {
+    return <div>Loading access and safety controls...</div>;
+  }
+
+  const { gateOpen, fireSystemOn, fireDetected, attendance } = data;
 
   return (
     <div className="space-y-6">
@@ -169,7 +213,10 @@ export function AccessSafetyTab() {
                   <Flame className="w-4 h-4 text-slate-600" />
                   <span className="text-sm">System Active</span>
                 </div>
-                <Switch checked={fireSystemOn} onCheckedChange={setFireSystemOn} />
+                <Switch 
+                  checked={fireSystemOn} 
+                  onCheckedChange={handleFireSystemToggle} 
+                />
               </div>
               
               <div className={`p-4 rounded-lg border-2 ${

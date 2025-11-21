@@ -8,7 +8,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
 
   if (loading) {
-    // Simple loading state while checking Firebase auth status
+    // Simple loading state while checking local JWT status
     return (
         <div className="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
             <Card className="w-full max-w-3xl p-8 space-y-6">
