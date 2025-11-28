@@ -15,7 +15,8 @@ let smartOfficeState = {
     airQualityIndex: 85,
     temperature: 24, // °C
   },
-  // AlertsTab history (initial data)
+  // Alerts state
+  alertMode: true, // ⬅️ Initialize Alert Mode state for persistence
   alertHistory: [
     { id: '1', timestamp: '2025-11-18 14:32:15', type: 'Motion Detected', status: 'Resolved' },
     { id: '2', timestamp: '2025-11-18 13:45:22', type: 'Unauthorized Movement', status: 'Resolved' },
@@ -25,7 +26,6 @@ let smartOfficeState = {
   accessSafety: {
     gateOpen: false,
     fireSystemOn: true,
-    // fireDetected: false, ⬅️ REMOVED MOCK FIRE DETECTION STATUS
     attendance: [
       { id: '1', employeeId: 'A1234', name: 'John Smith', time: '08:30 AM' },
       { id: '2', employeeId: 'A2345', name: 'Sarah Johnson', time: '08:45 AM' },
@@ -45,7 +45,6 @@ const getAirStatus = (value) => {
 router.use(authenticateToken); 
 
 // --- CONFIGURATION FOR HARDWARE CONTROL ---
-// ⚠️ IMPORTANT: Ensure this IP is correct and reachable from your Node.js server.
 const ESP_IP = "http://10.143.96.200"; 
 
 // ------------------------------------
@@ -90,7 +89,6 @@ router.post('/monitoring/light-control', async (req, res) => {
     
     try {
       // 🚀 Send HTTP GET request to the NodeMCU endpoint
-      // This matches the format: http://10.143.96.200/led?state=on/off
       await axios.get(`${ESP_IP}/led?state=${espCommand}`);
       console.log(`Successfully sent command to ESP: LED ${espCommand}`);
 
@@ -111,8 +109,10 @@ router.post('/monitoring/light-control', async (req, res) => {
 // GET /api/data/alerts - Get Alert History and current system state
 router.get('/alerts', (req, res) => {
   res.json({ 
-    alertMode: smartOfficeState.alertMode || true, // Default to true if not explicitly set
-    motionDetected: smartOfficeState.accessSafety.motionDetected,
+    alertMode: smartOfficeState.alertMode || false, // ⬅️ Return live alertMode state
+    // motionDetected status is derived from ThingSpeak in the frontend. 
+    // We return a mock 'false' to maintain the API contract.
+    motionDetected: false, 
     alertHistory: smartOfficeState.alertHistory 
   });
 });
@@ -121,7 +121,7 @@ router.get('/alerts', (req, res) => {
 router.post('/alerts/toggle-mode', (req, res) => {
   const { alertMode } = req.body;
   if (typeof alertMode === 'boolean') {
-    // NOTE: In a simulation, we just acknowledge the change.
+    smartOfficeState.alertMode = alertMode; // ⬅️ Update alert mode state
     res.json({ message: `Security alert mode acknowledged as ${alertMode ? 'ON' : 'OFF'}` });
   } else {
     res.status(400).json({ message: 'Invalid parameter for alertMode' });
@@ -153,11 +153,8 @@ router.post('/alerts/log-motion', (req, res) => {
 
 // GET /api/data/access-safety - Get initial Access and Safety data
 router.get('/access-safety', (req, res) => {
-  // We no longer include fireDetected here, as the frontend (AccessSafetyTab.tsx) fetches it directly from ThingSpeak.
-  const { attendance, fireSystemOn, gateOpen } = smartOfficeState.accessSafety; 
-  
-  // NOTE: You must include a mock 'fireDetected' value in the response to maintain the existing Interface until you fully refactor the whole app to rely on ThingSpeak.
-  // For now, we will assume fire is not detected in the mock response.
+  const { attendance, fireSystemOn, gateOpen } = smartOfficeState.accessSafety;
+  // We include a mock 'fireDetected: false' for interface compatibility
   res.json({ attendance, fireSystemOn, fireDetected: false, gateOpen }); 
 });
 
@@ -193,7 +190,7 @@ router.post('/access-safety/fire-test', (req, res) => {
     return res.status(400).json({ message: 'Fire system is inactive.' });
   }
 
-  // 🗑️ REMOVED SIMULATION: The request is successful, but the frontend will rely on ThingSpeak for the actual change.
+  // The button relies on ThingSpeak for the actual fire status change.
   res.json({ message: 'Fire detection test signal sent. Status update expected on next poll from ThingSpeak.' });
 });
 

@@ -1,8 +1,10 @@
+// anshikagarg0410/office-smartsuite/Office-SmartSuite-e150d57d6daa8a53e31aa02e355a87cf05b046b4/Backend/server.js
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors'); 
 const authRoutes = require('./routes/auth');
-const dashboardRoutes = require('./routes/dashboard'); // This is now the protected router
+const dashboardRoutes = require('./routes/dashboard');
 
 const app = express();
 const PORT = 3001;
@@ -24,20 +26,21 @@ app.get('/', (req, res) => {
 // Authentication Routes
 app.use('/api/auth', authRoutes);
 
-// --- FIX START: EXPOSE UNPROTECTED MONITORING DATA ---
-// We manually register the GET /monitoring route here,
-// before the authentication middleware is applied inside dashboardRoutes.
-// This allows the MonitoringTab to load data without a JWT token.
+// --- FIX START: EXPOSE UNPROTECTED GET ROUTES ---
+
+// Expose GET /api/data/monitoring without JWT protection
 app.get('/api/data/monitoring', (req, res, next) => {
-    // We pass control to the dashboard router, which will execute its routes until it finds a match.
-    // Since the first route in dashboard.js is GET /monitoring, it will execute that logic.
     dashboardRoutes(req, res, next);
 });
+
+// RE-FIX: Expose GET /api/data/alerts without JWT protection for initial load
+app.get('/api/data/alerts', (req, res, next) => {
+    dashboardRoutes(req, res, next);
+});
+
 // --- FIX END ---
 
 // Dashboard Data/Control Routes (PROTECTED)
-// All routes added here (excluding the GET /monitoring route above) will still be protected
-// by the router.use(authenticateToken) inside dashboard.js.
 app.use('/api/data', dashboardRoutes); 
 
 // Start Server

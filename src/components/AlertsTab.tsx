@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Switch } from './ui/switch';
 import { Badge } from './ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Shield, Bell, AlertTriangle, Activity } from 'lucide-react';
 import { api } from '../api';
+import { toast } from 'sonner';
 
 // 🚀 CONFIGURATION: ThingSpeak credentials and Intruder Field ID
 const THINGSPEAK_CHANNEL_ID = '3170554'; 
@@ -12,7 +13,7 @@ const THINGSPEAK_READ_API_KEY = 'D9MNMBMEUT21KGQN';
 const THINGSPEAK_INTRUDER_FIELD_ID = 6; // Field 6 for Motion Detection
 
 // Data Polling Configuration
-const DATA_RECENCY_THRESHOLD_MS = 30000; // 30 seconds
+const DATA_RECENCY_THRESHOLD_MS = 3000; // 30 seconds
 const REFRESH_RATE_MS = 2000; // 2 seconds
 
 interface AlertRecord {
@@ -35,6 +36,7 @@ export function AlertsTab() {
     alertHistory: [],
   });
   const [loading, setLoading] = useState(true);
+  const toastIdRef = useRef<string | number | undefined>(undefined); // Ref to manage toast ID
 
   const fetchData = async () => {
     let motionDetectedFromChannel = false;
@@ -133,13 +135,44 @@ export function AlertsTab() {
     }
   };
 
+  const isIntruderAlerting = data.motionDetected && data.alertMode;
+
+  // NEW EFFECT HOOK TO SHOW/HIDE PERSISTENT TOAST
+  useEffect(() => {
+    if (isIntruderAlerting) {
+      // Check if the toast is not already displayed
+      if (toastIdRef.current === undefined) {
+        toastIdRef.current = toast.error('🚨 UNAUTHORIZED MOVEMENT DETECTED 🚨', {
+          description: 'The security system has detected motion. Action logged to history.',
+          duration: Infinity, // Keep it open until manually dismissed/cleared
+          id: 'intruder-alert', // Use a fixed ID to manage the toast instance
+          important: true,
+          action: {
+            label: 'Dismiss',
+            onClick: () => toast.dismiss('intruder-alert'),
+          },
+          // Ensure ref is cleared if toast is closed (e.g., via action button)
+          onClose: () => {
+            toastIdRef.current = undefined;
+          },
+        });
+      }
+    } else {
+      // Dismiss the toast if the alert is no longer active
+      if (toastIdRef.current !== undefined) {
+        toast.dismiss('intruder-alert');
+        toastIdRef.current = undefined;
+      }
+    }
+  }, [isIntruderAlerting]);
+  // END NEW EFFECT HOOK
+
   if (loading) {
     return <div>Loading security system status...</div>;
   }
 
   const { alertMode, motionDetected, alertHistory } = data;
-  const isIntruderAlerting = motionDetected && alertMode;
-
+  
 
   return (
     <div className="space-y-6 max-w-6xl">
