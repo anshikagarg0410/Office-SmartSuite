@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { authenticateToken } = require('./auth'); 
+const axios = require('axios'); 
 
 // --- Mock Smart Device State & Data Store (In-Memory) ---
 let smartOfficeState = {
@@ -24,7 +25,7 @@ let smartOfficeState = {
   accessSafety: {
     gateOpen: false,
     fireSystemOn: true,
-    fireDetected: false,
+    // fireDetected: false, ⬅️ REMOVED MOCK FIRE DETECTION STATUS
     attendance: [
       { id: '1', employeeId: 'A1234', name: 'John Smith', time: '08:30 AM' },
       { id: '2', employeeId: 'A2345', name: 'Sarah Johnson', time: '08:45 AM' },
@@ -43,6 +44,10 @@ const getAirStatus = (value) => {
 // Apply authentication middleware to all routes in this file
 router.use(authenticateToken); 
 
+// --- CONFIGURATION FOR HARDWARE CONTROL ---
+// ⚠️ IMPORTANT: Ensure this IP is correct and reachable from your Node.js server.
+const ESP_IP = "http://10.143.96.200"; 
+
 // ------------------------------------
 // MONITORING ROUTES - /api/data/monitoring
 // ------------------------------------
@@ -59,22 +64,42 @@ router.get('/monitoring', (req, res) => {
 });
 
 // POST /api/data/monitoring/light-control - Control Smart Light 
-router.post('/monitoring/light-control', (req, res) => {
+router.post('/monitoring/light-control', async (req, res) => { 
   const { autoMode, lightOn } = req.body;
   
+  // 1. Update internal state based on user input for autoMode
   if (typeof autoMode === 'boolean') smartOfficeState.smartLight.autoMode = autoMode;
   
-  // Manual control check 
+  let targetState = smartOfficeState.smartLight.lightOn; 
+  
+  // 2. Handle Manual control: Update internal state and set targetState
   if (typeof lightOn === 'boolean' && !smartOfficeState.smartLight.autoMode) {
     smartOfficeState.smartLight.lightOn = lightOn;
+    targetState = lightOn;
   }
   
-  // Apply auto-mode logic if it's active
+  // 3. Apply auto-mode logic if it's active to get the final state
   if (smartOfficeState.smartLight.autoMode) {
-     // NOTE: This logic simulates the frontend's effect hook logic (LDR < 500 = ON)
-     smartOfficeState.smartLight.lightOn = smartOfficeState.smartLight.ldrValue < 500;
+     targetState = smartOfficeState.smartLight.ldrValue < 500;
+     smartOfficeState.smartLight.lightOn = targetState;
+  }
+  
+  // 4. Send command to the actual hardware if it's a manual change or a toggle of auto-mode
+  if (!smartOfficeState.smartLight.autoMode || (typeof lightOn === 'boolean' && !smartOfficeState.smartLight.autoMode) || (typeof autoMode === 'boolean')) {
+    const espCommand = smartOfficeState.smartLight.lightOn ? 'on' : 'off';
+    
+    try {
+      // 🚀 Send HTTP GET request to the NodeMCU endpoint
+      // This matches the format: http://10.143.96.200/led?state=on/off
+      await axios.get(`${ESP_IP}/led?state=${espCommand}`);
+      console.log(`Successfully sent command to ESP: LED ${espCommand}`);
+
+    } catch (error) {
+      console.error(`Failed to communicate with the hardware at ${ESP_IP}.`, error.message);
+    }
   }
 
+  // 5. Respond to the frontend with the updated mock state
   res.json({ message: 'Light state updated', smartLight: smartOfficeState.smartLight });
 });
 
@@ -128,8 +153,12 @@ router.post('/alerts/log-motion', (req, res) => {
 
 // GET /api/data/access-safety - Get initial Access and Safety data
 router.get('/access-safety', (req, res) => {
-  const { attendance, fireSystemOn, fireDetected, gateOpen } = smartOfficeState.accessSafety;
-  res.json({ attendance, fireSystemOn, fireDetected, gateOpen });
+  // We no longer include fireDetected here, as the frontend (AccessSafetyTab.tsx) fetches it directly from ThingSpeak.
+  const { attendance, fireSystemOn, gateOpen } = smartOfficeState.accessSafety; 
+  
+  // NOTE: You must include a mock 'fireDetected' value in the response to maintain the existing Interface until you fully refactor the whole app to rely on ThingSpeak.
+  // For now, we will assume fire is not detected in the mock response.
+  res.json({ attendance, fireSystemOn, fireDetected: false, gateOpen }); 
 });
 
 // POST /api/data/access-safety/rfid-scan - Simulate an RFID scan 
@@ -158,20 +187,14 @@ router.post('/access-safety/rfid-scan', (req, res) => {
   });
 });
 
-// POST /api/data/access-safety/fire-test - Simulate a fire test detection
+// POST /api/data/access-safety/fire-test - Signal a fire test initiated 
 router.post('/access-safety/fire-test', (req, res) => {
   if (!smartOfficeState.accessSafety.fireSystemOn) {
     return res.status(400).json({ message: 'Fire system is inactive.' });
   }
 
-  smartOfficeState.accessSafety.fireDetected = true;
-  
-  // Simulate the fire alert clearing after a delay
-  setTimeout(() => {
-    smartOfficeState.accessSafety.fireDetected = false;
-  }, 5000);
-
-  res.json({ message: 'Fire detection simulated. Alerting!' });
+  // 🗑️ REMOVED SIMULATION: The request is successful, but the frontend will rely on ThingSpeak for the actual change.
+  res.json({ message: 'Fire detection test signal sent. Status update expected on next poll from ThingSpeak.' });
 });
 
 // POST /api/data/access-safety/fire-system-toggle - Toggle Fire System status
