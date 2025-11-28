@@ -2,10 +2,10 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors'); 
 const authRoutes = require('./routes/auth');
-const dashboardRoutes = require('./routes/dashboard');
+const dashboardRoutes = require('./routes/dashboard'); // This is now the protected router
 
 const app = express();
-const PORT = 3001; // Running on port 3001 to avoid conflicts with the frontend (port 3000)
+const PORT = 3001;
 
 // Middleware
 app.use(cors({
@@ -24,8 +24,21 @@ app.get('/', (req, res) => {
 // Authentication Routes
 app.use('/api/auth', authRoutes);
 
-// Dashboard Data/Control Routes (Protected by Auth Middleware)
-app.use('/api/data', dashboardRoutes);
+// --- FIX START: EXPOSE UNPROTECTED MONITORING DATA ---
+// We manually register the GET /monitoring route here,
+// before the authentication middleware is applied inside dashboardRoutes.
+// This allows the MonitoringTab to load data without a JWT token.
+app.get('/api/data/monitoring', (req, res, next) => {
+    // We pass control to the dashboard router, which will execute its routes until it finds a match.
+    // Since the first route in dashboard.js is GET /monitoring, it will execute that logic.
+    dashboardRoutes(req, res, next);
+});
+// --- FIX END ---
+
+// Dashboard Data/Control Routes (PROTECTED)
+// All routes added here (excluding the GET /monitoring route above) will still be protected
+// by the router.use(authenticateToken) inside dashboard.js.
+app.use('/api/data', dashboardRoutes); 
 
 // Start Server
 app.listen(PORT, () => {
