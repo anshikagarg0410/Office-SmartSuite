@@ -27,9 +27,9 @@ let smartOfficeState = {
     gateOpen: false,
     fireSystemOn: true,
     attendance: [
-      { id: '1', employeeId: 'A1234', name: 'John Smith', time: '08:30 AM' },
-      { id: '2', employeeId: 'A2345', name: 'Sarah Johnson', time: '08:45 AM' },
-      { id: '3', employeeId: 'A3456', name: 'Mike Davis', time: '09:30 AM' },
+      { id: '1', employeeId: '0C00F7A6', name: 'John Smith', time: '08:30 AM' },
+      { id: '2', employeeId: '1A00B8C7', name: 'Sarah Johnson', time: '08:45 AM' },
+      { id: '3', employeeId: 'D200E9F8', name: 'Mike Davis', time: '09:30 AM' },
     ],
   }
 };

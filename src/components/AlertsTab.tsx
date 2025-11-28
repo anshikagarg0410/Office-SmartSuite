@@ -40,7 +40,7 @@ export function AlertsTab() {
 
   const fetchData = async () => {
     let motionDetectedFromChannel = false;
-    let localData = null;
+    let localData: Omit<AlertsData, 'motionDetected'> | null = null;
 
     try {
       // Show loading state only on initial load
