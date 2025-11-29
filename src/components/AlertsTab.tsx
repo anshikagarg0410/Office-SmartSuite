@@ -14,7 +14,7 @@ const THINGSPEAK_INTRUDER_FIELD_ID = 6; // Field 6 for Motion Detection
 
 // Data Polling Configuration
 const DATA_RECENCY_THRESHOLD_MS = 3000; // 30 seconds
-const REFRESH_RATE_MS = 2000; // 2 seconds
+const REFRESH_RATE_MS = 10000; // 2 seconds
 
 interface AlertRecord {
   id: string;
