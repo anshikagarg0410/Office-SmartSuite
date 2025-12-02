@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost:3001/api';
+const BASE_URL = import.meta.env.PROD 
+  ? 'https://office-smartsuite.onrender.com/api' 
+  : 'http://localhost:3001/api';
 const TOKEN_KEY = 'authToken';
 
 // Create an Axios instance
