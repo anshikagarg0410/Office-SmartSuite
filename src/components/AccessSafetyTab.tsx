@@ -199,7 +199,11 @@ export function AccessSafetyTab() {
         }
         
       } catch (error) {
-        console.warn(`ThingSpeak data fetch failed: ${error.message}. Using previous state/fallback.`);
+        if (error instanceof Error) {
+          console.warn(`ThingSpeak data fetch failed: ${error.message}. Using previous state/fallback.`);
+        } else {
+          console.warn('ThingSpeak data fetch failed: Unknown error. Using previous state/fallback.');
+        }
       }
 
       // --- 3. Finalize and Update State ---
@@ -291,14 +295,14 @@ export function AccessSafetyTab() {
               </div>
               <div>
                 <div className="text-slate-900">RFID Access Control</div>
-                <div className="text-xs text-slate-500">Card Authentication System (ThingSpeak Fields 7 & 8)</div>
+                <div className="text-xs text-slate-500">Card Authentication System </div>
               </div>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-5">
             <div className="flex items-center justify-center py-8">
               <div className="relative">
-                <div className={`w-36 h-36 rounded-full ${statusColor} ring-8 ${statusRing} flex items-center justify-center shadow-lg transition-all duration-500`}>
+                <div className={`w-36 h-36 rounded-full ${statusColor}  ${statusRing} flex items-center justify-center shadow-lg transition-all duration-500`}>
                   <VisualIcon className={`w-20 h-20 ${visualIconClasses} ${isAccessAccepted ? 'animate-pulse' : ''}`} />
                 </div>
                 {isAccessAccepted && (

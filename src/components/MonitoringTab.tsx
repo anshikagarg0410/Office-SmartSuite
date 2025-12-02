@@ -191,7 +191,7 @@ export function MonitoringTab() {
             </div>
             <div>
               <div className="text-slate-900">Smart Light</div>
-              <div className="text-xs text-slate-500">LDR Sensor Control (Value: {smartLight.ldrValue.toFixed(0)})</div>
+              <div className="text-xs text-slate-500">LDR Sensor Control </div>
             </div>
           </CardTitle>
         </CardHeader>

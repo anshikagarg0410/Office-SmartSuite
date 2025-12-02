@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { SidebarProvider } from './ui/sidebar';
+import { SidebarProvider, useSidebar } from './ui/sidebar';
 import { AppSidebar } from './AppSidebar';
 import { MonitoringTab } from './MonitoringTab';
 import { AccessSafetyTab } from './AccessSafetyTab';
@@ -9,6 +9,24 @@ import { Button } from './ui/button';
 import { useAuth } from '../auth';
 import { useNavigate } from 'react-router-dom';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
+
+// Internal component to handle sidebar toggling via context
+// This must be inside SidebarProvider to access the context
+function MobileSidebarTrigger() {
+  const { toggleSidebar } = useSidebar();
+  
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={toggleSidebar}
+      className="lg:hidden"
+    >
+      <Menu className="w-5 h-5" />
+      <span className="sr-only">Toggle Sidebar</span>
+    </Button>
+  );
+}
 
 export default function DashboardApp() {
   const [activeView, setActiveView] = useState<'monitoring' | 'access-safety' | 'alerts'>('monitoring');
@@ -24,11 +42,11 @@ export default function DashboardApp() {
   const getTitle = () => {
     switch (activeView) {
       case 'monitoring':
-        return 'System Monitoring';
+        return <b>System Monitoring</b>;
       case 'access-safety':
-        return 'Access & Safety Control';
+        return <b>Access & Safety Control</b>;
       case 'alerts':
-        return 'Alert System';
+        return <b>Alert System</b>;
       default:
         return 'Smart Office';
     }
@@ -41,7 +59,7 @@ export default function DashboardApp() {
       case 'access-safety':
         return 'RFID authentication and fire safety system';
       case 'alerts':
-        return 'PIR motion detection and security monitoring';
+        return 'Motion detection and security monitoring';
       default:
         return '';
     }
@@ -56,14 +74,9 @@ export default function DashboardApp() {
           <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-sm border-b border-slate-200">
             <div className="flex items-center justify-between gap-4 px-6 py-4">
               <div className="flex items-center gap-4">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setSidebarOpen(!sidebarOpen)}
-                  className="lg:hidden"
-                >
-                  <Menu className="w-5 h-5" />
-                </Button>
+                {/* Use the new trigger component here */}
+                <MobileSidebarTrigger />
+                
                 <div>
                   <h1 className="text-slate-900">{getTitle()}</h1>
                   <p className="text-sm text-slate-600">{getDescription()}</p>
