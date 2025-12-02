@@ -62,7 +62,7 @@
 
 /* Specific backgrounds for Login and Signup details */
 .auth-body-container .login .form-details {
-    background: #fff; /* Removed gradient here as it's handled in the React component header now */
+    background: #fff; 
 }
 
 .auth-body-container .signup .form-details {
@@ -201,6 +201,23 @@
     text-decoration: underline;
 }
 
+/* Styles for the Branding Image Panel */
+.branding-image-container {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #fff;
+}
+
+.auth-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Mobile Responsiveness */
 @media (max-width: 760px) {
     .auth-body-container .form-box {
         flex-direction: column;
@@ -208,8 +225,13 @@
     
     .auth-body-container .form-box .form-details {
         max-width: 100%;
-        height: 150px;
-        padding: 0; /* Updated for mobile too */
+        height: auto; /* Allow height to adjust based on content (header) */
+        padding: 0; 
+    }
+    
+    /* Completely hide the image container on mobile */
+    .branding-image-container {
+        display: none;
     }
     
     .auth-body-container .form-box .form-content {
