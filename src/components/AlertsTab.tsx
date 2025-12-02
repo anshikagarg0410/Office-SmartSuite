@@ -87,13 +87,17 @@ export function AlertsTab() {
         }
         
       } catch (error) {
-        console.warn(`Intruder detection API failed: ${error.message}. Assuming clear (false).`);
+        if (error instanceof Error) {
+            console.warn(`Intruder detection API failed: ${error.message}. Assuming clear (false).`);
+        } else {
+            console.warn(`Intruder detection API failed: Unknown error. Assuming clear (false).`);
+        }
         motionDetectedFromChannel = false;
       }
       
       // --- 3. Combine Data and Update State ---
       setData(prev => {
-        const isCurrentlyAlerting = motionDetectedFromChannel && localData.alertMode;
+        const isCurrentlyAlerting = motionDetectedFromChannel && localData?.alertMode;
         
         // Log a new alert only if the system is armed AND motion is newly detected
         if (isCurrentlyAlerting && (!prev.motionDetected || prev.alertHistory[0]?.type !== 'Unauthorized Movement')) {
@@ -103,8 +107,8 @@ export function AlertsTab() {
 
         return {
           // Use alertMode and History from localData
-          alertMode: localData.alertMode,
-          alertHistory: localData.alertHistory,
+          alertMode: localData?.alertMode || false,
+          alertHistory: localData?.alertHistory || [],
           // motionDetected is now controlled directly by live, recent ThingSpeak data
           motionDetected: motionDetectedFromChannel, 
         };
@@ -146,15 +150,13 @@ export function AlertsTab() {
           description: 'The security system has detected motion. Action logged to history.',
           duration: Infinity, // Keep it open until manually dismissed/cleared
           id: 'intruder-alert', // Use a fixed ID to manage the toast instance
-          important: true,
+          // important: true,
           action: {
             label: 'Dismiss',
             onClick: () => toast.dismiss('intruder-alert'),
           },
           // Ensure ref is cleared if toast is closed (e.g., via action button)
-          onClose: () => {
-            toastIdRef.current = undefined;
-          },
+          // Removed onClose property to avoid compile error
         });
       }
     } else {

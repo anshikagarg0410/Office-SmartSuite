@@ -1,0 +1,218 @@
+/* Importing Google Fonts - Miniver, Poppins */
+@import url('https://fonts.googleapis.com/css2?family=Miniver&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+/* Scope everything to .auth-body-container to prevent affecting other components */
+
+.auth-body-container {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f0f2f5; 
+}
+
+.auth-body-container .form-popup {
+    position: relative;
+    width: 100%;
+    max-width: 850px;
+    background: #fff;
+    border: 2px solid #fff;
+    border-radius: 10px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    transform: scale(1);
+    transition: transform 0.2s ease;
+    overflow: hidden;
+}
+
+.auth-body-container .form-box {
+    display: flex;
+    width: 100%;
+}
+
+/* --- UPDATED SECTION START --- */
+.auth-body-container .form-box .form-details {
+    width: 100%;
+    max-width: 330px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; /* Aligns content to the top */
+    align-items: stretch;        /* Stretches children to full width */
+    background-size: cover;
+    background-position: center;
+    padding: 0;                  /* REMOVED padding so edges touch */
+    color: #fff;
+}
+/* --- UPDATED SECTION END --- */
+
+.auth-body-container .form-box .form-details h2 {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    color: #fff;
+}
+
+.auth-body-container .form-box .form-details p {
+    font-size: 0.9rem;
+}
+
+/* Specific backgrounds for Login and Signup details */
+.auth-body-container .login .form-details {
+    background: #fff; /* Removed gradient here as it's handled in the React component header now */
+}
+
+.auth-body-container .signup .form-details {
+    background: #fff;
+}
+
+.auth-body-container .form-box .form-content {
+    width: 100%;
+    padding: 35px;
+}
+
+.auth-body-container .form-box h2 {
+    text-align: center;
+    margin-bottom: 29px;
+    color: #333;
+}
+
+.auth-body-container form .input-field {
+    position: relative;
+    height: 50px;
+    width: 100%;
+    margin-top: 20px;
+}
+
+.auth-body-container .input-field input {
+    height: 100%;
+    width: 100%;
+    background: none;
+    outline: none;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 0 15px;
+    font-size: 0.95rem;
+    color: #333;
+    transition: 0.2s ease;
+}
+
+.auth-body-container .input-field input:is(:focus, :valid) {
+    border-color: #0072ff;
+}
+
+.auth-body-container .input-field label {
+    position: absolute;
+    top: 50%;
+    left: 15px;
+    transform: translateY(-50%);
+    color: #888;
+    pointer-events: none;
+    transition: 0.2s ease;
+    font-size: 0.95rem;
+    background: #fff;
+    padding: 0 4px;
+}
+
+.auth-body-container .input-field input:is(:focus, :valid) ~ label {
+    top: 0;
+    font-size: 0.75rem;
+    color: #0072ff;
+}
+
+.auth-body-container .forgot-pass-link {
+    display: block;
+    margin-top: 10px;
+    text-align: right;
+    color: #0072ff;
+    text-decoration: none;
+    font-size: 0.85rem;
+}
+
+.auth-body-container .forgot-pass-link:hover {
+    text-decoration: underline;
+}
+
+.auth-body-container .policy-text {
+    display: flex;
+    align-items: center;
+    margin-top: 15px;
+    font-size: 0.85rem;
+    color: #333;
+}
+
+.auth-body-container .policy-text input {
+    margin-right: 8px;
+    width: 14px;
+    height: 14px;
+}
+
+.auth-body-container .policy-text a {
+    color: #0072ff;
+    text-decoration: none;
+}
+
+.auth-body-container .policy-text a:hover {
+    text-decoration: underline;
+}
+
+.auth-body-container button {
+    width: 100%;
+    height: 45px;
+    outline: none;
+    border: none;
+    background: #0072ff;
+    border-radius: 4px;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 25px;
+    transition: 0.2s ease;
+}
+
+.auth-body-container button:hover {
+    background: #005bb5;
+}
+
+.auth-body-container button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+.auth-body-container .bottom-link {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 0.9rem;
+    color: #333;
+}
+
+.auth-body-container .bottom-link a {
+    color: #0072ff;
+    text-decoration: none;
+    font-weight: 500;
+    margin-left: 5px;
+}
+
+.auth-body-container .bottom-link a:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 760px) {
+    .auth-body-container .form-box {
+        flex-direction: column;
+    }
+    
+    .auth-body-container .form-box .form-details {
+        max-width: 100%;
+        height: 150px;
+        padding: 0; /* Updated for mobile too */
+    }
+    
+    .auth-body-container .form-box .form-content {
+        padding: 25px;
+    }
+}
