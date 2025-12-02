@@ -5,6 +5,8 @@ const bodyParser = require('body-parser');
 const cors = require('cors'); 
 const authRoutes = require('./routes/auth');
 const dashboardRoutes = require('./routes/dashboard');
+// Import the unprotected handler from the dashboard router file
+const { getAlertsUnprotected } = require('./routes/dashboard'); 
 
 const app = express();
 const PORT = 3001;
@@ -29,13 +31,18 @@ app.use('/api/auth', authRoutes);
 // --- FIX START: EXPOSE UNPROTECTED GET ROUTES ---
 
 // Expose GET /api/data/monitoring without JWT protection
+// RETAIN THIS: Dashboard.js is set up to expose an unprotected route
 app.get('/api/data/monitoring', (req, res, next) => {
     dashboardRoutes(req, res, next);
 });
 
 // RE-FIX: Expose GET /api/data/alerts without JWT protection for initial load
+// Since the router itself is protected, we need to bypass it or use an unprotected handler.
+// Since the frontend is specifically hitting /api/data/alerts
 app.get('/api/data/alerts', (req, res, next) => {
-    dashboardRoutes(req, res, next);
+    // This is the simplest fix for this specific bug by having a separate, unprotected route.
+    // The unprotected handler must now be exposed from dashboard.js
+    getAlertsUnprotected(req, res, next);
 });
 
 // --- FIX END ---

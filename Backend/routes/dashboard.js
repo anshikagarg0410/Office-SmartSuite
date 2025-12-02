@@ -106,16 +106,28 @@ router.post('/monitoring/light-control', async (req, res) => {
 // ALERTS ROUTES - /api/data/alerts
 // ------------------------------------
 
-// GET /api/data/alerts - Get Alert History and current system state
+// GET /api/data/alerts - Get Alert History and current system state (Protected version)
 router.get('/alerts', (req, res) => {
   res.json({ 
     alertMode: smartOfficeState.alertMode || false, // ⬅️ Return live alertMode state
-    // motionDetected status is derived from ThingSpeak in the frontend. 
-    // We return a mock 'false' to maintain the API contract.
     motionDetected: false, 
     alertHistory: smartOfficeState.alertHistory 
   });
 });
+
+/**
+ * NEW: Unprotected handler for initial alerts data fetch.
+ * This function is exported and called directly from server.js *before* authentication
+ * to allow the frontend to load basic state.
+ */
+function getAlertsUnprotected(req, res, next) {
+    res.json({
+        alertMode: smartOfficeState.alertMode || false,
+        // motionDetected is derived from ThingSpeak in the frontend. 
+        motionDetected: false, 
+        alertHistory: smartOfficeState.alertHistory
+    });
+}
 
 // POST /api/data/alerts/toggle-mode - Toggle Security Alert Mode
 router.post('/alerts/toggle-mode', (req, res) => {
@@ -207,3 +219,4 @@ router.post('/access-safety/fire-system-toggle', (req, res) => {
 
 
 module.exports = router;
+module.exports.getAlertsUnprotected = getAlertsUnprotected; // ⬅️ EXPORTED FOR UNPROTECTED ACCESS

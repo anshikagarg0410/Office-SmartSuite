@@ -13,7 +13,7 @@ const THINGSPEAK_READ_API_KEY = 'D9MNMBMEUT21KGQN';
 const THINGSPEAK_INTRUDER_FIELD_ID = 6; // Field 6 for Motion Detection
 
 // Data Polling Configuration
-const DATA_RECENCY_THRESHOLD_MS = 3000; // 30 seconds
+const DATA_RECENCY_THRESHOLD_MS = 30000; // 30 seconds
 const REFRESH_RATE_MS = 10000; // 2 seconds
 
 interface AlertRecord {
@@ -188,7 +188,7 @@ export function AlertsTab() {
             </div>
             <div>
               <div className="text-slate-900">Security Alert System</div>
-              <div className="text-xs text-slate-500">PIR Motion Sensor (ThingSpeak Data)</div>
+              <div className="text-xs text-slate-500"></div>
             </div>
           </CardTitle>
         </CardHeader>

@@ -20,12 +20,12 @@ const REFRESH_RATE_MS = 10000; // 10 seconds
 // 🔑 UID to NAME MAPPING (User's Provided Data)
 // Use UIDs (Tag IDs) as keys.
 const UID_NAME_MAP: { [key: string]: string } = {
-    // Format: "UID_OR_EMPLOYEE_ID": "Employee Name"
-    "2380560134": "Ankita Meena",
-    "1225422926010496": "Anshika",
-    "1178866149904768": "Anshika Garg",
-    "1205147868164736":"Anchal Gupta",
-    // Add more recognized UIDs here...
+    // Format: "UID_OR_EMPLOYEE_ID": "Employee Name"
+    "2380560134": "Ankita Meena",
+    "1225422926010496": "Anshika",
+    "1178866149904768": "Anshika Garg",
+    "1205147868164736":"Anchal Gupta",
+    // Add more recognized UIDs here...
 };
 // ------------------------------------------------------------------
 
@@ -269,8 +269,8 @@ export function AccessSafetyTab() {
                      : isAccessDeclined ? 'DECLINED / GATE CLOSED' 
                      : 'Awaiting Scan';
   
-  const visualIcon = isAccessAccepted ? DoorOpen : Fingerprint;
-  const visualIconClasses = isAccessAccepted || isAccessDeclined ? 'text-white' : 'text-slate-400';
+  const VisualIcon = isAccessAccepted ? DoorOpen : Fingerprint;
+  const visualIconClasses = 'text-white'; // Always white for better contrast
                             
   const badgeVariant: "default" | "secondary" | "destructive" | "outline" = isAccessAccepted ? "default" : isAccessDeclined ? "destructive" : "secondary";
   
@@ -287,7 +287,7 @@ export function AccessSafetyTab() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <div className={`w-10 h-10 rounded-lg ${statusColor} flex items-center justify-center transition-all`}>
-                <Fingerprint className={`w-5 h-5 ${isAccessAccepted || isAccessDeclined ? 'text-white' : 'text-slate-400'}`} />
+                <Fingerprint className="w-5 h-5 text-white" />
               </div>
               <div>
                 <div className="text-slate-900">RFID Access Control</div>
@@ -299,7 +299,7 @@ export function AccessSafetyTab() {
             <div className="flex items-center justify-center py-8">
               <div className="relative">
                 <div className={`w-36 h-36 rounded-full ${statusColor} ring-8 ${statusRing} flex items-center justify-center shadow-lg transition-all duration-500`}>
-                  <visualIcon className={`w-20 h-20 ${visualIconClasses} ${isAccessAccepted ? 'animate-pulse' : ''}`} />
+                  <VisualIcon className={`w-20 h-20 ${visualIconClasses} ${isAccessAccepted ? 'animate-pulse' : ''}`} />
                 </div>
                 {isAccessAccepted && (
                   <div className="absolute inset-0 rounded-full bg-green-400 opacity-30 animate-ping"></div>
