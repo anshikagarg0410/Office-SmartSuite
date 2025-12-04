@@ -131,7 +131,7 @@ export function MonitoringTab() {
     fetchData(); 
     
     // Set up a polling interval (every 3 seconds)
-    const interval = setInterval(fetchData, 3000);
+    const interval = setInterval(fetchData, 7000);
     return () => clearInterval(interval); // Cleanup on unmount
   }, []);
 
